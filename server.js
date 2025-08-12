@@ -777,6 +777,159 @@
 // module.exports = app;
 
 
+// require("dotenv").config();
+// const express = require("express");
+// const mongoose = require("mongoose");
+// const cors = require("cors");
+// const helmet = require("helmet");
+// const rateLimit = require("express-rate-limit");
+// const mongoSanitize = require("express-mongo-sanitize");
+// const { body, validationResult } = require("express-validator");
+// const axios = require("axios");
+
+// const app = express();
+
+// // Middleware
+// app.use(cors());
+// app.use(helmet());
+// app.use(express.json());
+
+// // Correct usage of mongoSanitize middleware (sanitize req.body and req.params)
+// app.use((req, res, next) => {
+//   if (req.body) req.body = mongoSanitize.sanitize(req.body);
+//   if (req.params) req.params = mongoSanitize.sanitize(req.params);
+//   next();
+// });
+
+// // Rate limiter
+// const limiter = rateLimit({
+//   windowMs: 15 * 60 * 1000, // 15 minutes
+//   max: 100, // limit each IP to 100 requests per windowMs
+//   standardHeaders: true,
+//   legacyHeaders: false,
+// });
+// app.use(limiter);
+
+// // Connect to MongoDB (only once)
+// if (!mongoose.connection.readyState) {
+//   mongoose
+//     .connect(process.env.MONGODB_URI) // Make sure your env variable name is MONGODB_URI
+//     .then(() => console.log("MongoDB connected"))
+//     .catch((err) => console.error("MongoDB error:", err));
+// }
+
+// // Client Schema
+// const clientSchema = new mongoose.Schema({
+//   firstName: String,
+//   surname: String,
+//   companyName: String,
+//   organizationNumber: String,
+//   address: String,
+//   postalNumber: String,
+//   city: String,
+//   tel: String,
+//   email: { type: String, unique: true },
+//   membershipType: { type: String, enum: ["basic", "standard", "professional", "premium"] },
+//   paymentMethod: String,
+//   message: String,
+//   acceptTerms: Boolean,
+//   receiveNews: Boolean,
+// });
+
+// const Client = mongoose.models.Client || mongoose.model("Client", clientSchema);
+
+// // Registration route with validation and sanitization
+// app.post(
+//   "/api/register",
+//   [
+//     body("email").isEmail().normalizeEmail(),
+//     body("firstName").trim().notEmpty().escape(),
+//     body("surname").trim().notEmpty().escape(),
+//     body("companyName").trim().notEmpty().escape(),
+//     body("organizationNumber").trim().notEmpty().escape(),
+//     body("address").trim().notEmpty().escape(),
+//     body("postalNumber").trim().notEmpty().escape(),
+//     body("city").trim().notEmpty().escape(),
+//     body("tel").trim().notEmpty().escape(),
+//     body("membershipType").isIn(["basic", "standard", "professional", "premium"]),
+//     body("paymentMethod").trim().notEmpty().escape(),
+//     body("acceptTerms").equals("true"),
+//   ],
+//   async (req, res) => {
+//     const errors = validationResult(req);
+//     if (!errors.isEmpty()) {
+//       console.log("Validation errors:", errors.array());
+//       return res.status(400).json({ message: "Invalid input", errors: errors.array() });
+//     }
+
+//     try {
+//       const { email, firstName } = req.body;
+
+//       // Check if client already exists by email
+//       const existingClient = await Client.findOne({ email });
+//       if (existingClient) {
+//         return res.status(400).json({ message: "Client with this email already exists" });
+//       }
+
+//       // Create new client document
+//       const client = new Client({
+//         ...req.body,
+//         acceptTerms: true,
+//         receiveNews: req.body.receiveNews === true || req.body.receiveNews === "true",
+//       });
+//       await client.save();
+
+//       // Optional email sending - currently active
+//       const v = req.body;
+//       const companyEmailData = {
+//         subject: "New customer",
+//         body: `<p>New customer: ${v.firstName} ${v.surname}</p>`,
+//         emails: ["Kund@taxipro.se"],
+//       };
+
+//       const thankYouEmailData = {
+//         subject: "Thank You for Registering with TaxiPro",
+//         body: `<p>Hi ${firstName}, thank you for registering with TaxiPro!</p>`,
+//         emails: [email],
+//       };
+
+//       let companyEmailSent = false;
+//       let customerEmailSent = false;
+
+//       try {
+//         const companyResponse = await axios.post(process.env.TAXIPRO_EMAIL_API, companyEmailData, {
+//           headers: { "Content-Type": "application/json" },
+//         });
+//         if (companyResponse.status === 200) companyEmailSent = true;
+//       } catch (err) {
+//         console.error("Company email send error:", err.message);
+//       }
+
+//       try {
+//         const customerResponse = await axios.post(process.env.TAXIPRO_EMAIL_API, thankYouEmailData, {
+//           headers: { "Content-Type": "application/json" },
+//         });
+//         if (customerResponse.status === 200) customerEmailSent = true;
+//       } catch (err) {
+//         console.error("Customer email send error:", err.message);
+//       }
+
+//       return res.status(201).json({
+//         message: "Registration successful",
+//         companyEmailSent,
+//         customerEmailSent,
+//       });
+//     } catch (error) {
+//       console.error("Registration error:", error);
+//       res.status(500).json({ message: "Internal server error" });
+//     }
+//   }
+// );
+
+// // Export for serverless (Vercel)
+// module.exports = app;
+
+
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
@@ -789,36 +942,39 @@ const axios = require("axios");
 
 const app = express();
 
+// Trust the first proxy (Vercel) to get correct client IP
+app.set('trust proxy', 1);
+
 // Middleware
 app.use(cors());
 app.use(helmet());
 app.use(express.json());
 
-// Correct usage of mongoSanitize middleware (sanitize req.body and req.params)
+// Sanitize input to prevent NoSQL injection
 app.use((req, res, next) => {
   if (req.body) req.body = mongoSanitize.sanitize(req.body);
   if (req.params) req.params = mongoSanitize.sanitize(req.params);
   next();
 });
 
-// Rate limiter
+// Rate limiter to limit repeated requests
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: 100,
   standardHeaders: true,
   legacyHeaders: false,
 });
 app.use(limiter);
 
-// Connect to MongoDB (only once)
+// Connect to MongoDB once
 if (!mongoose.connection.readyState) {
   mongoose
-    .connect(process.env.MONGODB_URI) // Make sure your env variable name is MONGODB_URI
+    .connect(process.env.MONGODB_URI)
     .then(() => console.log("MongoDB connected"))
-    .catch((err) => console.error("MongoDB error:", err));
+    .catch((err) => console.error("MongoDB connection error:", err));
 }
 
-// Client Schema
+// Client schema
 const clientSchema = new mongoose.Schema({
   firstName: String,
   surname: String,
@@ -838,7 +994,7 @@ const clientSchema = new mongoose.Schema({
 
 const Client = mongoose.models.Client || mongoose.model("Client", clientSchema);
 
-// Registration route with validation and sanitization
+// Registration route with validation
 app.post(
   "/api/register",
   [
@@ -865,13 +1021,13 @@ app.post(
     try {
       const { email, firstName } = req.body;
 
-      // Check if client already exists by email
+      // Check for existing client by email
       const existingClient = await Client.findOne({ email });
       if (existingClient) {
         return res.status(400).json({ message: "Client with this email already exists" });
       }
 
-      // Create new client document
+      // Save new client
       const client = new Client({
         ...req.body,
         acceptTerms: true,
@@ -879,7 +1035,7 @@ app.post(
       });
       await client.save();
 
-      // Optional email sending - currently active
+      // Optional email notifications
       const v = req.body;
       const companyEmailData = {
         subject: "New customer",
@@ -926,5 +1082,12 @@ app.post(
   }
 );
 
-// Export for serverless (Vercel)
+// Only start server locally, skip when deployed serverless (e.g. Vercel)
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
 module.exports = app;
