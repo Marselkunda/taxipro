@@ -456,6 +456,183 @@
 // app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 
+// require("dotenv").config();
+// const express = require("express");
+// const mongoose = require("mongoose");
+// const cors = require("cors");
+// const helmet = require("helmet");
+// const rateLimit = require("express-rate-limit");
+// const mongoSanitize = require("express-mongo-sanitize");
+// const { body, validationResult } = require("express-validator");
+// const axios = require("axios");
+
+// const app = express();
+
+// // Middleware
+// app.use(cors());
+// app.use(helmet());
+// app.use(express.json());
+
+// const limiter = rateLimit({
+//   windowMs: 15 * 60 * 1000,
+//   max: 100,
+//   standardHeaders: true,
+//   legacyHeaders: false,
+// });
+// app.use(limiter);
+
+// // Sanitize input
+// app.use((req, res, next) => {
+//   if (req.body) req.body = mongoSanitize.sanitize(req.body);
+//   if (req.params) req.params = mongoSanitize.sanitize(req.params);
+//   next();
+// });
+
+// // Connect to MongoDB
+// mongoose
+//   .connect(process.env.MONGO_URI)
+//   .then(() => console.log("MongoDB connected"))
+//   .catch((err) => console.error("MongoDB error:", err));
+
+// // Schema
+// const clientSchema = new mongoose.Schema({
+//   firstName: String,
+//   surname: String,
+//   companyName: String,
+//   organizationNumber: String,
+//   address: String,
+//   postalNumber: String,
+//   city: String,
+//   tel: String,
+//   email: { type: String, unique: true },
+//   membershipType: { type: String, enum: ["basic", "standard", "professional", "premium"] },
+//   paymentMethod: String,
+//   message: String,
+//   acceptTerms: Boolean,
+//   receiveNews: Boolean,
+// });
+
+// const Client = mongoose.model("Client", clientSchema);
+
+// // Registration + Email
+// app.post(
+//   "/api/register",
+//   [
+//     body("email").isEmail().normalizeEmail(),
+//     body("firstName").trim().notEmpty().escape(),
+//     body("surname").trim().notEmpty().escape(),
+//     body("companyName").trim().notEmpty().escape(),
+//     body("organizationNumber").trim().notEmpty().escape(),
+//     body("address").trim().notEmpty().escape(),
+//     body("postalNumber").trim().notEmpty().escape(),
+//     body("city").trim().notEmpty().escape(),
+//     body("tel").trim().notEmpty().escape(),
+//     body("membershipType").isIn(["basic", "standard", "professional", "premium"]),
+//     body("paymentMethod").trim().notEmpty().escape(),
+//     body("acceptTerms").equals("true"),
+//   ],
+//   async (req, res) => {
+//     const errors = validationResult(req);
+//     if (!errors.isEmpty()) {
+//       console.log("Validation errors:", errors.array());
+//       return res.status(400).json({ message: "Invalid input", errors: errors.array() });
+//     }
+
+//     try {
+//       const { email, firstName } = req.body;
+
+//       // 1️⃣ Check if client already exists
+//       const existingClient = await Client.findOne({ email });
+//       if (existingClient) {
+//         return res.status(400).json({ message: "Client with this email already exists" });
+//       }
+
+//       // 2️⃣ Save to DB
+//       const client = new Client({
+//         ...req.body,
+//         acceptTerms: true,
+//         receiveNews: req.body.receiveNews === true || req.body.receiveNews === "true",
+//       });
+//       await client.save();
+
+//       // 3️⃣ Email to company
+//       const v = req.body;
+//       const companyEmailData = {
+//         subject: "New customer",
+//         body: `
+//           <div style="font-family: Arial, sans-serif; color: #333; padding: 20px;">
+//             <h2 style="color: #ffc001;">New Customer Registration</h2>
+//             <p><b>First Name:</b> ${v.firstName}</p>
+//             <p><b>Last Name:</b> ${v.surname}</p>
+//             <p><b>Company:</b> ${v.companyName}</p>
+//             <p><b>Organization Number:</b> ${v.organizationNumber}</p>
+//             <p><b>Address:</b> ${v.address}</p>
+//             <p><b>Postal Number:</b> ${v.postalNumber}</p>
+//             <p><b>City:</b> ${v.city}</p>
+//             <p><b>Tel:</b> ${v.tel}</p>
+//             <p><b>Email:</b> ${v.email}</p>
+//             <p><b>Subscription:</b> ${v.membershipType}</p>
+//             <p><b>Payment Method:</b> ${v.paymentMethod}</p>
+//             <p><b>Message:</b> ${v.message || "N/A"}</p>
+//             <p><b>Accept Emails:</b> ${v.receiveNews ? "Yes" : "No"}</p>
+//           </div>
+//         `,
+//         emails: ["Kund@taxipro.se"],
+//       };
+
+//       // 4️⃣ Email to customer (Thank You)
+//       const thankYouEmailData = {
+//         subject: "Thank You for Registering with TaxiPro",
+//         body: `
+//           <div style="font-family: Arial, sans-serif; color: #333; padding: 20px;">
+//             <h2 style="color: #ffc001;">Hi ${firstName},</h2>
+//             <p>Thank you for registering with <b>TaxiPro</b>. We are excited to have you onboard!</p>
+//             <p>Our team will review your information and get in touch with you soon.</p>
+//             <br/>
+//             <p style="color: #555;">Best regards,<br/>TaxiPro Team</p>
+//           </div>
+//         `,
+//         emails: [email],
+//       };
+
+//       let companyEmailSent = false;
+//       let customerEmailSent = false;
+
+//       try {
+//         const companyResponse = await axios.post(process.env.TAXIPRO_EMAIL_API, companyEmailData, {
+//           headers: { "Content-Type": "application/json" },
+//         });
+//         if (companyResponse.status === 200) companyEmailSent = true;
+//       } catch (err) {
+//         console.error("Company email failed:", err.response?.data || err.message);
+//       }
+
+//       try {
+//         const customerResponse = await axios.post(process.env.TAXIPRO_EMAIL_API, thankYouEmailData, {
+//           headers: { "Content-Type": "application/json" },
+//         });
+//         if (customerResponse.status === 200) customerEmailSent = true;
+//       } catch (err) {
+//         console.error("Customer email failed:", err.response?.data || err.message);
+//       }
+
+//       return res.status(201).json({
+//         message: "Registration successful",
+//         companyEmailSent,
+//         customerEmailSent,
+//       });
+//     } catch (error) {
+//       console.error("Error:", error.response?.data || error.message);
+//       res.status(500).json({ message: "Internal server error" });
+//     }
+//   }
+// );
+
+// // Start server
+// const PORT = process.env.PORT || 5000;
+// app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
@@ -488,11 +665,13 @@ app.use((req, res, next) => {
   next();
 });
 
-// Connect to MongoDB
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB connected"))
-  .catch((err) => console.error("MongoDB error:", err));
+// Connect to MongoDB (only once)
+if (!mongoose.connection.readyState) {
+  mongoose
+    .connect(process.env.MONGO_URI)
+    .then(() => console.log("MongoDB connected"))
+    .catch((err) => console.error("MongoDB error:", err));
+}
 
 // Schema
 const clientSchema = new mongoose.Schema({
@@ -512,9 +691,9 @@ const clientSchema = new mongoose.Schema({
   receiveNews: Boolean,
 });
 
-const Client = mongoose.model("Client", clientSchema);
+const Client = mongoose.models.Client || mongoose.model("Client", clientSchema);
 
-// Registration + Email
+// Routes
 app.post(
   "/api/register",
   [
@@ -541,13 +720,11 @@ app.post(
     try {
       const { email, firstName } = req.body;
 
-      // 1️⃣ Check if client already exists
       const existingClient = await Client.findOne({ email });
       if (existingClient) {
         return res.status(400).json({ message: "Client with this email already exists" });
       }
 
-      // 2️⃣ Save to DB
       const client = new Client({
         ...req.body,
         acceptTerms: true,
@@ -555,43 +732,16 @@ app.post(
       });
       await client.save();
 
-      // 3️⃣ Email to company
       const v = req.body;
       const companyEmailData = {
         subject: "New customer",
-        body: `
-          <div style="font-family: Arial, sans-serif; color: #333; padding: 20px;">
-            <h2 style="color: #ffc001;">New Customer Registration</h2>
-            <p><b>First Name:</b> ${v.firstName}</p>
-            <p><b>Last Name:</b> ${v.surname}</p>
-            <p><b>Company:</b> ${v.companyName}</p>
-            <p><b>Organization Number:</b> ${v.organizationNumber}</p>
-            <p><b>Address:</b> ${v.address}</p>
-            <p><b>Postal Number:</b> ${v.postalNumber}</p>
-            <p><b>City:</b> ${v.city}</p>
-            <p><b>Tel:</b> ${v.tel}</p>
-            <p><b>Email:</b> ${v.email}</p>
-            <p><b>Subscription:</b> ${v.membershipType}</p>
-            <p><b>Payment Method:</b> ${v.paymentMethod}</p>
-            <p><b>Message:</b> ${v.message || "N/A"}</p>
-            <p><b>Accept Emails:</b> ${v.receiveNews ? "Yes" : "No"}</p>
-          </div>
-        `,
+        body: `<p>New customer: ${v.firstName} ${v.surname}</p>`,
         emails: ["Kund@taxipro.se"],
       };
 
-      // 4️⃣ Email to customer (Thank You)
       const thankYouEmailData = {
         subject: "Thank You for Registering with TaxiPro",
-        body: `
-          <div style="font-family: Arial, sans-serif; color: #333; padding: 20px;">
-            <h2 style="color: #ffc001;">Hi ${firstName},</h2>
-            <p>Thank you for registering with <b>TaxiPro</b>. We are excited to have you onboard!</p>
-            <p>Our team will review your information and get in touch with you soon.</p>
-            <br/>
-            <p style="color: #555;">Best regards,<br/>TaxiPro Team</p>
-          </div>
-        `,
+        body: `<p>Hi ${firstName}, thank you for registering with TaxiPro!</p>`,
         emails: [email],
       };
 
@@ -603,18 +753,14 @@ app.post(
           headers: { "Content-Type": "application/json" },
         });
         if (companyResponse.status === 200) companyEmailSent = true;
-      } catch (err) {
-        console.error("Company email failed:", err.response?.data || err.message);
-      }
+      } catch {}
 
       try {
         const customerResponse = await axios.post(process.env.TAXIPRO_EMAIL_API, thankYouEmailData, {
           headers: { "Content-Type": "application/json" },
         });
         if (customerResponse.status === 200) customerEmailSent = true;
-      } catch (err) {
-        console.error("Customer email failed:", err.response?.data || err.message);
-      }
+      } catch {}
 
       return res.status(201).json({
         message: "Registration successful",
@@ -622,12 +768,10 @@ app.post(
         customerEmailSent,
       });
     } catch (error) {
-      console.error("Error:", error.response?.data || error.message);
       res.status(500).json({ message: "Internal server error" });
     }
   }
 );
 
-// Start server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Export for Vercel
+module.exports = app;
