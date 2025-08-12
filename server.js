@@ -633,6 +633,150 @@
 // app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 
+// require("dotenv").config();
+// const express = require("express");
+// const mongoose = require("mongoose");
+// const cors = require("cors");
+// const helmet = require("helmet");
+// const rateLimit = require("express-rate-limit");
+// const mongoSanitize = require("express-mongo-sanitize");
+// const { body, validationResult } = require("express-validator");
+// const axios = require("axios");
+
+// const app = express();
+
+// // Middleware
+// app.use(cors());
+// app.use(helmet());
+// app.use(express.json());
+
+// const limiter = rateLimit({
+//   windowMs: 15 * 60 * 1000,
+//   max: 100,
+//   standardHeaders: true,
+//   legacyHeaders: false,
+// });
+// app.use(limiter);
+
+// // Sanitize input
+// app.use((req, res, next) => {
+//   if (req.body) req.body = mongoSanitize.sanitize(req.body);
+//   if (req.params) req.params = mongoSanitize.sanitize(req.params);
+//   next();
+// });
+
+// // Connect to MongoDB (only once)
+// if (!mongoose.connection.readyState) {
+//   mongoose
+//     .connect(process.env.MONGO_URI)
+//     .then(() => console.log("MongoDB connected"))
+//     .catch((err) => console.error("MongoDB error:", err));
+// }
+
+// // Schema
+// const clientSchema = new mongoose.Schema({
+//   firstName: String,
+//   surname: String,
+//   companyName: String,
+//   organizationNumber: String,
+//   address: String,
+//   postalNumber: String,
+//   city: String,
+//   tel: String,
+//   email: { type: String, unique: true },
+//   membershipType: { type: String, enum: ["basic", "standard", "professional", "premium"] },
+//   paymentMethod: String,
+//   message: String,
+//   acceptTerms: Boolean,
+//   receiveNews: Boolean,
+// });
+
+// const Client = mongoose.models.Client || mongoose.model("Client", clientSchema);
+
+// // Routes
+// app.post(
+//   "/api/register",
+//   [
+//     body("email").isEmail().normalizeEmail(),
+//     body("firstName").trim().notEmpty().escape(),
+//     body("surname").trim().notEmpty().escape(),
+//     body("companyName").trim().notEmpty().escape(),
+//     body("organizationNumber").trim().notEmpty().escape(),
+//     body("address").trim().notEmpty().escape(),
+//     body("postalNumber").trim().notEmpty().escape(),
+//     body("city").trim().notEmpty().escape(),
+//     body("tel").trim().notEmpty().escape(),
+//     body("membershipType").isIn(["basic", "standard", "professional", "premium"]),
+//     body("paymentMethod").trim().notEmpty().escape(),
+//     body("acceptTerms").equals("true"),
+//   ],
+//   async (req, res) => {
+//     const errors = validationResult(req);
+//     if (!errors.isEmpty()) {
+//       console.log("Validation errors:", errors.array());
+//       return res.status(400).json({ message: "Invalid input", errors: errors.array() });
+//     }
+
+//     try {
+//       const { email, firstName } = req.body;
+
+//       const existingClient = await Client.findOne({ email });
+//       if (existingClient) {
+//         return res.status(400).json({ message: "Client with this email already exists" });
+//       }
+
+//       const client = new Client({
+//         ...req.body,
+//         acceptTerms: true,
+//         receiveNews: req.body.receiveNews === true || req.body.receiveNews === "true",
+//       });
+//       await client.save();
+
+//       const v = req.body;
+//       const companyEmailData = {
+//         subject: "New customer",
+//         body: `<p>New customer: ${v.firstName} ${v.surname}</p>`,
+//         emails: ["Kund@taxipro.se"],
+//       };
+
+//       const thankYouEmailData = {
+//         subject: "Thank You for Registering with TaxiPro",
+//         body: `<p>Hi ${firstName}, thank you for registering with TaxiPro!</p>`,
+//         emails: [email],
+//       };
+
+//       let companyEmailSent = false;
+//       let customerEmailSent = false;
+
+//       try {
+//         const companyResponse = await axios.post(process.env.TAXIPRO_EMAIL_API, companyEmailData, {
+//           headers: { "Content-Type": "application/json" },
+//         });
+//         if (companyResponse.status === 200) companyEmailSent = true;
+//       } catch {}
+
+//       try {
+//         const customerResponse = await axios.post(process.env.TAXIPRO_EMAIL_API, thankYouEmailData, {
+//           headers: { "Content-Type": "application/json" },
+//         });
+//         if (customerResponse.status === 200) customerEmailSent = true;
+//       } catch {}
+
+//       return res.status(201).json({
+//         message: "Registration successful",
+//         companyEmailSent,
+//         customerEmailSent,
+//       });
+//     } catch (error) {
+//       res.status(500).json({ message: "Internal server error" });
+//     }
+//   }
+// );
+
+// // Export for Vercel
+// module.exports = app;
+
+
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
@@ -650,30 +794,31 @@ app.use(cors());
 app.use(helmet());
 app.use(express.json());
 
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-app.use(limiter);
-
-// Sanitize input
+// Correct usage of mongoSanitize middleware (sanitize req.body and req.params)
 app.use((req, res, next) => {
   if (req.body) req.body = mongoSanitize.sanitize(req.body);
   if (req.params) req.params = mongoSanitize.sanitize(req.params);
   next();
 });
 
+// Rate limiter
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use(limiter);
+
 // Connect to MongoDB (only once)
 if (!mongoose.connection.readyState) {
   mongoose
-    .connect(process.env.MONGO_URI)
+    .connect(process.env.MONGODB_URI) // Make sure your env variable name is MONGODB_URI
     .then(() => console.log("MongoDB connected"))
     .catch((err) => console.error("MongoDB error:", err));
 }
 
-// Schema
+// Client Schema
 const clientSchema = new mongoose.Schema({
   firstName: String,
   surname: String,
@@ -693,7 +838,7 @@ const clientSchema = new mongoose.Schema({
 
 const Client = mongoose.models.Client || mongoose.model("Client", clientSchema);
 
-// Routes
+// Registration route with validation and sanitization
 app.post(
   "/api/register",
   [
@@ -720,11 +865,13 @@ app.post(
     try {
       const { email, firstName } = req.body;
 
+      // Check if client already exists by email
       const existingClient = await Client.findOne({ email });
       if (existingClient) {
         return res.status(400).json({ message: "Client with this email already exists" });
       }
 
+      // Create new client document
       const client = new Client({
         ...req.body,
         acceptTerms: true,
@@ -732,6 +879,7 @@ app.post(
       });
       await client.save();
 
+      // Optional email sending - currently active
       const v = req.body;
       const companyEmailData = {
         subject: "New customer",
@@ -753,14 +901,18 @@ app.post(
           headers: { "Content-Type": "application/json" },
         });
         if (companyResponse.status === 200) companyEmailSent = true;
-      } catch {}
+      } catch (err) {
+        console.error("Company email send error:", err.message);
+      }
 
       try {
         const customerResponse = await axios.post(process.env.TAXIPRO_EMAIL_API, thankYouEmailData, {
           headers: { "Content-Type": "application/json" },
         });
         if (customerResponse.status === 200) customerEmailSent = true;
-      } catch {}
+      } catch (err) {
+        console.error("Customer email send error:", err.message);
+      }
 
       return res.status(201).json({
         message: "Registration successful",
@@ -768,10 +920,11 @@ app.post(
         customerEmailSent,
       });
     } catch (error) {
+      console.error("Registration error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   }
 );
 
-// Export for Vercel
+// Export for serverless (Vercel)
 module.exports = app;
