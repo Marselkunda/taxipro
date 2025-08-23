@@ -599,7 +599,7 @@ app.post(
 
       // Style config
       const brandColor = "#ffc001";
-      const textColor = "#444";
+      const textColor = "#555";
       const bgColor = "#f8f8f8";
 
       // Responsive style block
@@ -621,20 +621,20 @@ app.post(
       <body style="margin:0; padding:0; background:${bgColor}; font-family: Arial, sans-serif;">
         <table class="main" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: auto; background: #fff; border-radius: 10px; overflow: hidden; border: 1px solid #eee;">
           <tr>
-            <td style="text-align:center; padding: 20px; background: #fff;">
-              <img class="logo" src="https://yourdomain.com/logo.png" alt="TaxiPro Logo" style="max-width: 180px; height:auto;" />
-            </td>
-          </tr>
-          <tr>
-            <td class="header" style="background: ${brandColor}; color: #222; text-align: center; font-size: 20px; font-weight: bold; padding: 15px;">Welcome to TaxiPro</td>
+            <td class="header" style="background: ${brandColor}; color: #222; text-align: center; font-size: 20px; font-weight: 600; padding: 15px;">Welcome to TaxiPro</td>
           </tr>
           <tr>
             <td class="content" style="padding: 25px; font-size: 16px; color: ${textColor}; line-height: 1.6;">
-              <p>Hi <strong>${firstName}</strong>,</p>
-              <p>Thank you for joining <strong>TaxiPro</strong>! 🚖</p>
-              <p>Your membership: <span style="color:${brandColor}; font-weight:bold;">${membershipType}</span></p>
+              <p>Hi <span style="font-weight:500;">${firstName}</span>,</p>
+              <p>Thank you for joining <span style="font-weight:500;">TaxiPro</span>! 🚖</p>
+              <p>Your membership: <span style="color:${brandColor}; font-weight:600;">${membershipType}</span></p>
               <p>We’re excited to support you in managing your taxi services efficiently.</p>
               <p style="margin-top: 25px;">Best regards,<br>The TaxiPro Team</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="text-align:center; padding: 20px; background:#fff;">
+              <img class="logo" src="https://yourdomain.com/logo.png" alt="TaxiPro Logo" style="max-width: 160px; height:auto;" />
             </td>
           </tr>
           <tr>
@@ -654,20 +654,20 @@ app.post(
       <body style="margin:0; padding:0; background:${bgColor}; font-family: Arial, sans-serif;">
         <table class="main" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: auto; background: #fff; border-radius: 10px; overflow: hidden; border: 1px solid #eee;">
           <tr>
-            <td class="header" style="background: ${brandColor}; color: #222; text-align: center; font-size: 20px; font-weight: bold; padding: 15px;">New Customer Registration</td>
+            <td class="header" style="background: ${brandColor}; color: #222; text-align: center; font-size: 20px; font-weight: 600; padding: 15px;">New Customer Registration</td>
           </tr>
           <tr>
             <td class="content" style="padding: 20px; font-size: 15px; color: ${textColor}; line-height: 1.6;">
               <p>A new customer has registered:</p>
               <ul style="padding-left:18px;">
-                <li><strong>Name:</strong> ${firstName} ${surname}</li>
-                <li><strong>Company:</strong> ${companyName}</li>
-                <li><strong>Org Number:</strong> ${organizationNumber}</li>
-                <li><strong>Address:</strong> ${address}, ${postalNumber}, ${city}</li>
-                <li><strong>Phone:</strong> ${tel}</li>
-                <li><strong>Email:</strong> ${email}</li>
-                <li><strong>Membership:</strong> ${membershipType}</li>
-                <li><strong>Payment Method:</strong> ${paymentMethod}</li>
+                <li><span style="font-weight:500;">Name:</span> ${firstName} ${surname}</li>
+                <li><span style="font-weight:500;">Company:</span> ${companyName}</li>
+                <li><span style="font-weight:500;">Org Number:</span> ${organizationNumber}</li>
+                <li><span style="font-weight:500;">Address:</span> ${address}, ${postalNumber}, ${city}</li>
+                <li><span style="font-weight:500;">Phone:</span> ${tel}</li>
+                <li><span style="font-weight:500;">Email:</span> ${email}</li>
+                <li><span style="font-weight:500;">Membership:</span> ${membershipType}</li>
+                <li><span style="font-weight:500;">Payment Method:</span> ${paymentMethod}</li>
               </ul>
             </td>
           </tr>
