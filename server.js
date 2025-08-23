@@ -643,7 +643,7 @@ app.post(
           </tr>
           <tr>
             <td style="text-align:center; padding: 20px; background:#fff;">
-              <img class="logo" src="https://taxipro-git-main-marsels-projects-273e3aa7.vercel.app/public/logo.png" alt="TaxiPro Logo" style="max-width:160px; height:auto;" />
+              <img class="logo" src="https://taxipro-git-main-marsels-projects-273e3aa7.vercel.app/public/TaxiPro.png" alt="TaxiPro Logo" style="max-width:160px; height:auto;" />
             </td>
           </tr>
           <tr>
