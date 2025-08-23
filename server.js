@@ -257,7 +257,7 @@ const clientSchema = new mongoose.Schema({
   email: { type: String, unique: true },
   membershipType: {
     type: String,
-    enum: ["basic", "standard", "professional", "premium"],
+    enum: ["TaxiPro S", "TaxiPro M", "TaxiPro L", "Obegränsad"],
   },
   paymentMethod: String,
   message: String,
@@ -281,10 +281,10 @@ app.post(
     body("city").trim().notEmpty().escape(),
     body("tel").trim().notEmpty().escape(),
     body("membershipType").isIn([
-      "basic",
-      "standard",
-      "professional",
-      "premium",
+      "TaxiPro S",
+      "TaxiPro M",
+      "TaxiPro L",
+      "Obegränsad",
     ]),
     body("paymentMethod").trim().notEmpty().escape(),
     body("acceptTerms").equals("true"),
