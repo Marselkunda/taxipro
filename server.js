@@ -490,8 +490,11 @@ app.use(cors());
 app.use(helmet());
 app.use(express.json());
 
-// Serve public folder for logo
-app.use('/public', express.static('public'));
+// // Serve public folder for logo
+// app.use('/public', express.static('public'));
+
+const path = require('path');
+app.use('/public', express.static(path.join(__dirname, 'public')));
 
 // Sanitize input
 app.use((req, res, next) => {
