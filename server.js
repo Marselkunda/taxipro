@@ -621,7 +621,7 @@ app.post(
       <body style="margin:0; padding:0; background:${bgColor}; font-family: Arial, sans-serif;">
         <table class="main" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: auto; background: #fff; border-radius: 10px; overflow: hidden; border: 1px solid #eee;">
           <tr>
-            <td class="header" style="background: ${brandColor}; color: #222; text-align: center; font-size: 20px; font-weight: 600; padding: 15px;">Welcome to TaxiPro</td>
+            <td class="header" style="background: ${brandColor}; color: #fff4b2; text-align: center; font-size: 20px; font-weight: 600; padding: 15px;">Welcome to TaxiPro</td>
           </tr>
           <tr>
             <td class="content" style="padding: 25px; font-size: 16px; color: ${textColor}; line-height: 1.6;">
@@ -634,7 +634,7 @@ app.post(
           </tr>
           <tr>
             <td style="text-align:center; padding: 20px; background:#fff;">
-              <img class="logo" src="https://yourdomain.com/logo.png" alt="TaxiPro Logo" style="max-width: 160px; height:auto;" />
+              <img class="logo" src="https://taxiprose.vercel.app/TaxiPro.png" alt="TaxiPro Logo" style="max-width: 160px; height:auto;" />
             </td>
           </tr>
           <tr>
