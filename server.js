@@ -200,7 +200,8 @@ app.post(
             <td class="content" style="padding: 20px; font-size: 15px; color: ${textColor}; line-height: 1.6;">
               <p>A new customer has registered:</p>
               <ul style="padding-left:18px;">
-                <li><span style="font-weight:500;">Name:</span> ${firstName} ${surname}</li>
+                <li><span style="font-weight:500;">First Name:</span> ${firstName}</li>
+                <li><span style="font-weight:500;">Surname:</span> ${surname}</li>
                 <li><span style="font-weight:500;">Company:</span> ${companyName}</li>
                 <li><span style="font-weight:500;">Org Number:</span> ${organizationNumber}</li>
                 <li><span style="font-weight:500;">Address:</span> ${address}, ${postalNumber}, ${city}</li>
@@ -208,6 +209,9 @@ app.post(
                 <li><span style="font-weight:500;">Email:</span> ${email}</li>
                 <li><span style="font-weight:500;">Membership:</span> ${membershipType}</li>
                 <li><span style="font-weight:500;">Payment Method:</span> ${paymentMethod}</li>
+                <li><span style="font-weight:500;">Message:</span> ${message ? message : "(none provided)"}</li>
+                <li><span style="font-weight:500;">Receive Newsletters:</span> ${receiveNews ? "Yes" : "No"}</li>
+                <li><span style="font-weight:500;">Accepted Terms:</span> Yes</li>
               </ul>
             </td>
           </tr>
