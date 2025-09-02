@@ -14,13 +14,7 @@ const app = express();
 app.set("trust proxy", 1);
 
 // // Middleware
-// app.use(cors());
-
-app.use(cors({
-  origin: ["https://taxipro-psi.vercel.app"], // only allow your frontend
-  methods: ["GET", "POST"],                   // allowed HTTP methods
-  credentials: true                           // if you ever need cookies/auth
-}));
+app.use(cors());
 
 app.use(helmet());
 app.use(express.json());
